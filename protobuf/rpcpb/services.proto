@@ -1,0 +1,326 @@
+syntax = "proto3";
+package rpcpb;
+option go_package = "github.com/cryptdefender3232/phantom/protobuf/rpcpb";
+
+import "commonpb/common.proto";
+import "phantompb/phantom.proto";
+import "clientpb/client.proto";
+
+service PhantomRPC {
+
+  // *** Version ***
+  rpc GetVersion(commonpb.Empty) returns (clientpb.Version);
+
+  // *** Client Logs ***
+  rpc ClientLog(stream clientpb.ClientLogData) returns (commonpb.Empty);
+
+  // *** Operator Commands ***
+  rpc GetOperators(commonpb.Empty) returns (clientpb.Operators);
+
+  // *** Generic ***
+  rpc Kill(phantompb.KillReq) returns (commonpb.Empty);
+  rpc Reconfigure(phantompb.ReconfigureReq) returns (phantompb.Reconfigure);
+  rpc Rename(clientpb.RenameReq) returns (commonpb.Empty);
+
+  // *** Sessions ***
+  rpc GetSessions(commonpb.Empty) returns (clientpb.Sessions);
+
+  // ***Threat monitoring ***
+  rpc MonitorStart(commonpb.Empty) returns (commonpb.Response);
+  rpc MonitorStop(commonpb.Empty) returns (commonpb.Empty);
+  rpc MonitorListConfig(commonpb.Empty) returns (clientpb.MonitoringProviders);
+  rpc MonitorAddConfig(clientpb.MonitoringProvider) returns (commonpb.Response);
+  rpc MonitorDelConfig(clientpb.MonitoringProvider) returns (commonpb.Response);
+
+  // *** AI ***
+  rpc GetAIProviders(commonpb.Empty) returns (clientpb.AIProviderConfigs);
+  rpc GetAIConversations(commonpb.Empty) returns (clientpb.AIConversations);
+  rpc GetAIConversation(clientpb.AIConversationReq) returns (clientpb.AIConversation);
+  rpc SaveAIConversation(clientpb.AIConversation) returns (clientpb.AIConversation);
+  rpc DeleteAIConversation(clientpb.AIConversationReq) returns (commonpb.Empty);
+  rpc GetAIConversationMessages(clientpb.AIConversationReq)
+      returns (clientpb.AIConversationMessages);
+  rpc SaveAIConversationMessage(clientpb.AIConversationMessage)
+      returns (clientpb.AIConversationMessage);
+    
+  // *** Listeners ***
+  rpc StartMTLSListener(clientpb.MTLSListenerReq) returns (clientpb.ListenerJob);
+  rpc StartWGListener(clientpb.WGListenerReq) returns (clientpb.ListenerJob);
+  rpc StartDNSListener(clientpb.DNSListenerReq) returns (clientpb.ListenerJob);
+  rpc StartHTTPSListener(clientpb.HTTPListenerReq) returns (clientpb.ListenerJob);
+  rpc StartHTTPListener(clientpb.HTTPListenerReq) returns (clientpb.ListenerJob);
+  
+  // *** Beacons ***
+  rpc GetBeacons(commonpb.Empty) returns (clientpb.Beacons);
+  rpc GetBeacon(clientpb.Beacon) returns (clientpb.Beacon);
+  rpc RmBeacon(clientpb.Beacon) returns (commonpb.Empty);
+  rpc GetBeaconTasks(clientpb.Beacon) returns (clientpb.BeaconTasks);
+  rpc GetBeaconTaskContent(clientpb.BeaconTask) returns (clientpb.BeaconTask);
+  rpc CancelBeaconTask(clientpb.BeaconTask) returns (clientpb.BeaconTask);
+  rpc UpdateBeaconIntegrityInformation(clientpb.BeaconIntegrity) returns (commonpb.Empty);
+
+
+  // *** Jobs ***
+  rpc GetJobs(commonpb.Empty) returns (clientpb.Jobs);
+  rpc KillJob(clientpb.KillJobReq) returns (clientpb.KillJob);
+  rpc RestartJobs(clientpb.RestartJobReq) returns (commonpb.Empty);
+
+
+  // *** Stager Listener ***
+  rpc StartTCPStagerListener(clientpb.StagerListenerReq)
+      returns (clientpb.StagerListener);
+
+  // *** Loot ***
+  rpc LootAdd(clientpb.Loot) returns (clientpb.Loot);
+  rpc LootRm(clientpb.Loot) returns (commonpb.Empty);
+  rpc LootUpdate(clientpb.Loot) returns (clientpb.Loot);
+  rpc LootContent(clientpb.Loot) returns (clientpb.Loot);
+  rpc LootAll(commonpb.Empty) returns (clientpb.AllLoot);
+
+  // *** Creds ***
+  rpc Creds(commonpb.Empty) returns (clientpb.Credentials);
+  rpc CredsAdd(clientpb.Credentials) returns (commonpb.Empty);
+  rpc CredsRm(clientpb.Credentials) returns (commonpb.Empty);
+  rpc CredsUpdate(clientpb.Credentials) returns (commonpb.Empty);
+  rpc GetCredByID(clientpb.Credential) returns (clientpb.Credential);
+  rpc GetCredsByHashType(clientpb.Credential) returns (clientpb.Credentials);
+  rpc GetPlaintextCredsByHashType(clientpb.Credential)
+      returns (clientpb.Credentials);
+  rpc CredsSniffHashType(clientpb.Credential) returns (clientpb.Credential);
+
+  // *** Hosts ***
+  rpc Hosts(commonpb.Empty) returns (clientpb.AllHosts);
+  rpc Host(clientpb.Host) returns (clientpb.Host);
+  rpc HostRm(clientpb.Host) returns (commonpb.Empty);
+  rpc HostIOCRm(clientpb.IOC) returns (commonpb.Empty);
+
+  // *** Implants ***
+  rpc Generate(clientpb.GenerateReq) returns (clientpb.Generate);
+  rpc GenerateSpoofMetadata(clientpb.GenerateSpoofMetadataReq)
+      returns (commonpb.Empty);
+  rpc GenerateExternal(clientpb.ExternalGenerateReq)
+      returns (clientpb.ExternalImplantConfig);
+  rpc GenerateExternalSaveBuild(clientpb.ExternalImplantBinary)
+      returns (commonpb.Empty);
+  rpc GenerateExternalGetBuildConfig(clientpb.ImplantBuild)
+      returns (clientpb.ExternalImplantConfig);
+  rpc GenerateStage(clientpb.GenerateStageReq)
+      returns (clientpb.Generate);
+  rpc StageImplantBuild(clientpb.ImplantStageReq)
+      returns (commonpb.Empty);
+
+  // *** HTTP C2 Profiles ***
+  rpc GetHTTPC2Profiles(commonpb.Empty) returns (clientpb.HTTPC2Configs);
+  rpc GetHTTPC2ProfileByName(clientpb.C2ProfileReq) returns (clientpb.HTTPC2Config);
+  rpc SaveHTTPC2Profile(clientpb.HTTPC2ConfigReq) returns (commonpb.Empty);
+
+  // *** Builders ***
+  rpc BuilderRegister(clientpb.Builder) returns (stream clientpb.Event);
+  rpc BuilderTrigger(clientpb.Event) returns (commonpb.Empty);
+  rpc Builders(commonpb.Empty) returns (clientpb.Builders);
+
+  // *** Certificates ***
+  rpc GetCertificateInfo(clientpb.CertificatesReq) returns (clientpb.CertificateInfo);
+  rpc GetCertificateAuthorityInfo(commonpb.Empty)
+      returns (clientpb.CertificateAuthorityInfo);
+
+  // *** Crackstation ***
+  rpc Crack(clientpb.CrackCommand) returns (clientpb.CrackResponse);
+  rpc CrackstationRegister(clientpb.Crackstation)
+      returns (stream clientpb.Event);
+  rpc CrackstationTrigger(clientpb.Event) returns (commonpb.Empty);
+  rpc CrackstationBenchmark(clientpb.CrackBenchmark) returns (commonpb.Empty);
+  rpc Crackstations(commonpb.Empty) returns (clientpb.Crackstations);
+  rpc CrackTaskByID(clientpb.CrackTask) returns (clientpb.CrackTask);
+  rpc CrackTaskUpdate(clientpb.CrackTask) returns (commonpb.Empty);
+  rpc CrackFilesList(clientpb.CrackFile) returns (clientpb.CrackFiles);
+  rpc CrackFileCreate(clientpb.CrackFile) returns (clientpb.CrackFile);
+  rpc CrackFileChunkUpload(clientpb.CrackFileChunk) returns (commonpb.Empty);
+  rpc CrackFileChunkDownload(clientpb.CrackFileChunk)
+      returns (clientpb.CrackFileChunk);
+  rpc CrackFileComplete(clientpb.CrackFile) returns (commonpb.Empty);
+  rpc CrackFileDelete(clientpb.CrackFile) returns (commonpb.Empty);
+
+  // *** Payloads ***
+  rpc Regenerate(clientpb.RegenerateReq) returns (clientpb.Generate);
+  rpc ImplantBuilds(commonpb.Empty) returns (clientpb.ImplantBuilds);
+  rpc DeleteImplantBuild(clientpb.DeleteReq) returns (commonpb.Empty);
+  rpc Canaries(commonpb.Empty) returns (clientpb.Canaries);
+  rpc GenerateWGClientConfig(commonpb.Empty) returns (clientpb.WGClientConfig);
+  rpc GenerateUniqueIP(commonpb.Empty) returns (clientpb.UniqueWGIP);
+  rpc ImplantProfiles(commonpb.Empty) returns (clientpb.ImplantProfiles);
+  rpc DeleteImplantProfile(clientpb.DeleteReq) returns (commonpb.Empty);
+  rpc SaveImplantProfile(clientpb.ImplantProfile)
+      returns (clientpb.ImplantProfile);
+  rpc ShellcodeRDI(clientpb.ShellcodeRDIReq) returns (clientpb.ShellcodeRDI);
+  rpc GetCompiler(commonpb.Empty) returns (clientpb.Compiler);
+  rpc ShellcodeEncoder(clientpb.ShellcodeEncodeReq)
+      returns (clientpb.ShellcodeEncode);
+  rpc ShellcodeEncoderMap(commonpb.Empty)
+      returns (clientpb.ShellcodeEncoderMap);
+  rpc TrafficEncoderMap(commonpb.Empty) returns (clientpb.TrafficEncoderMap);
+  rpc TrafficEncoderAdd(clientpb.TrafficEncoder)
+      returns (clientpb.TrafficEncoderTests);
+  rpc TrafficEncoderRm(clientpb.TrafficEncoder) returns (commonpb.Empty);
+
+  // *** Websites ***
+  rpc Websites(commonpb.Empty) returns (clientpb.Websites);
+  rpc Website(clientpb.Website) returns (clientpb.Website);
+  rpc WebsiteRemove(clientpb.Website) returns (commonpb.Empty);
+  rpc WebsiteAddContent(clientpb.WebsiteAddContent) returns (clientpb.Website);
+  rpc WebsiteUpdateContent(clientpb.WebsiteAddContent)
+      returns (clientpb.Website);
+  rpc WebsiteRemoveContent(clientpb.WebsiteRemoveContent)
+      returns (clientpb.Website);
+
+  // *** Session Interactions ***
+  rpc Ping(phantompb.Ping) returns (phantompb.Ping);
+  rpc Ps(phantompb.PsReq) returns (phantompb.Ps);
+  rpc Terminate(phantompb.TerminateReq) returns (phantompb.Terminate);
+  rpc Ifconfig(phantompb.IfconfigReq) returns (phantompb.Ifconfig);
+  rpc Netstat(phantompb.NetstatReq) returns (phantompb.Netstat);
+  rpc Ls(phantompb.LsReq) returns (phantompb.Ls);
+  rpc Cd(phantompb.CdReq) returns (phantompb.Pwd);
+  rpc Pwd(phantompb.PwdReq) returns (phantompb.Pwd);
+  rpc Mv(phantompb.MvReq) returns (phantompb.Mv);
+  rpc Cp(phantompb.CpReq) returns (phantompb.Cp);
+  rpc Rm(phantompb.RmReq) returns (phantompb.Rm);
+  rpc Mkdir(phantompb.MkdirReq) returns (phantompb.Mkdir);
+  rpc Download(phantompb.DownloadReq) returns (phantompb.Download);
+  rpc Upload(phantompb.UploadReq) returns (phantompb.Upload);
+  rpc Grep(phantompb.GrepReq) returns (phantompb.Grep);
+  rpc Chmod(phantompb.ChmodReq) returns (phantompb.Chmod);
+  rpc Chown(phantompb.ChownReq) returns (phantompb.Chown);
+  rpc Chtimes(phantompb.ChtimesReq) returns (phantompb.Chtimes);
+  rpc MemfilesList(phantompb.MemfilesListReq) returns (phantompb.Ls);
+  rpc MemfilesAdd(phantompb.MemfilesAddReq) returns (phantompb.MemfilesAdd);
+  rpc MemfilesRm(phantompb.MemfilesRmReq) returns (phantompb.MemfilesRm);
+  rpc Mount(phantompb.MountReq) returns (phantompb.Mount);
+  rpc ProcessDump(phantompb.ProcessDumpReq) returns (phantompb.ProcessDump);
+  rpc RunAs(phantompb.RunAsReq) returns (phantompb.RunAs);
+  rpc Impersonate(phantompb.ImpersonateReq) returns (phantompb.Impersonate);
+  rpc RevToSelf(phantompb.RevToSelfReq) returns (phantompb.RevToSelf);
+  rpc GetSystem(clientpb.GetSystemReq) returns (phantompb.GetSystem);
+  rpc Task(phantompb.TaskReq) returns (phantompb.Task);
+  rpc Msf(clientpb.MSFReq) returns (phantompb.Task);
+  rpc MsfRemote(clientpb.MSFRemoteReq) returns (phantompb.Task);
+  rpc ExecuteAssembly(phantompb.ExecuteAssemblyReq)
+      returns (phantompb.ExecuteAssembly);
+  rpc Migrate(clientpb.MigrateReq) returns (phantompb.Migrate);
+  rpc Execute(phantompb.ExecuteReq) returns (phantompb.Execute);
+  rpc ExecuteWindows(phantompb.ExecuteWindowsReq) returns (phantompb.Execute);
+  rpc ExecuteChildren(phantompb.ExecuteChildrenReq) returns (phantompb.ExecuteChildren);
+  rpc Sideload(phantompb.SideloadReq) returns (phantompb.Sideload);
+  rpc SpawnDll(phantompb.InvokeSpawnDllReq) returns (phantompb.SpawnDll);
+  rpc Screenshot(phantompb.ScreenshotReq) returns (phantompb.Screenshot);
+  rpc CurrentTokenOwner(phantompb.CurrentTokenOwnerReq)
+      returns (phantompb.CurrentTokenOwner);
+  rpc Services(phantompb.ServicesReq) returns (phantompb.Services);
+  rpc ServiceDetail(phantompb.ServiceDetailReq) returns (phantompb.ServiceDetail);
+  rpc StartServiceByName(phantompb.StartServiceByNameReq) returns (phantompb.ServiceInfo);
+
+  // *** Pivots ***
+  rpc PivotStartListener(phantompb.PivotStartListenerReq)
+      returns (phantompb.PivotListener);
+  rpc PivotStopListener(phantompb.PivotStopListenerReq) returns (commonpb.Empty);
+  rpc PivotSessionListeners(phantompb.PivotListenersReq)
+      returns (phantompb.PivotListeners);
+  rpc PivotGraph(commonpb.Empty) returns (clientpb.PivotGraph);
+
+  rpc StartService(phantompb.StartServiceReq) returns (phantompb.ServiceInfo);
+  rpc StopService(phantompb.StopServiceReq) returns (phantompb.ServiceInfo);
+  rpc RemoveService(phantompb.RemoveServiceReq) returns (phantompb.ServiceInfo);
+
+  rpc MakeToken(phantompb.MakeTokenReq) returns (phantompb.MakeToken);
+  rpc GetEnv(phantompb.EnvReq) returns (phantompb.EnvInfo);
+  rpc SetEnv(phantompb.SetEnvReq) returns (phantompb.SetEnv);
+  rpc UnsetEnv(phantompb.UnsetEnvReq) returns (phantompb.UnsetEnv);
+  rpc Backdoor(clientpb.BackdoorReq) returns (clientpb.Backdoor);
+  rpc RegistryRead(phantompb.RegistryReadReq) returns (phantompb.RegistryRead);
+  rpc RegistryWrite(phantompb.RegistryWriteReq) returns (phantompb.RegistryWrite);
+  rpc RegistryCreateKey(phantompb.RegistryCreateKeyReq)
+      returns (phantompb.RegistryCreateKey);
+  rpc RegistryDeleteKey(phantompb.RegistryDeleteKeyReq)
+      returns (phantompb.RegistryDeleteKey);
+  rpc RegistryListSubKeys(phantompb.RegistrySubKeyListReq)
+      returns (phantompb.RegistrySubKeyList);
+  rpc RegistryListValues(phantompb.RegistryListValuesReq)
+      returns (phantompb.RegistryValuesList);
+  rpc RegistryReadHive(phantompb.RegistryReadHiveReq) returns (phantompb.RegistryReadHive);
+  rpc RunSSHCommand(phantompb.SSHCommandReq) returns (phantompb.SSHCommand);
+  rpc HijackDLL(clientpb.DllHijackReq) returns (clientpb.DllHijack);
+  rpc GetPrivs(phantompb.GetPrivsReq) returns (phantompb.GetPrivs);
+  rpc StartRportFwdListener(phantompb.RportFwdStartListenerReq)
+      returns (phantompb.RportFwdListener);
+  rpc GetRportFwdListeners(phantompb.RportFwdListenersReq)
+      returns (phantompb.RportFwdListeners);
+  rpc StopRportFwdListener(phantompb.RportFwdStopListenerReq)
+      returns (phantompb.RportFwdListener);
+
+  // *** Beacon *** -only commands
+  rpc OpenSession(phantompb.OpenSession) returns (phantompb.OpenSession);
+  rpc CloseSession(phantompb.CloseSession) returns (commonpb.Empty);
+
+  // *** Extensions ***
+  rpc RegisterExtension(phantompb.RegisterExtensionReq)
+      returns (phantompb.RegisterExtension);
+  rpc CallExtension(phantompb.CallExtensionReq) returns (phantompb.CallExtension);
+  rpc ListExtensions(phantompb.ListExtensionsReq)
+      returns (phantompb.ListExtensions);
+
+  // *** Wasm Extensions ***
+  rpc RegisterWasmExtension(phantompb.RegisterWasmExtensionReq)
+      returns (phantompb.RegisterWasmExtension);
+  rpc ListWasmExtensions(phantompb.ListWasmExtensionsReq)
+      returns (phantompb.ListWasmExtensions);
+  rpc ExecWasmExtension(phantompb.ExecWasmExtensionReq)
+      returns (phantompb.ExecWasmExtension);
+
+  // *** Wireguard Specific ***
+  rpc WGStartPortForward(phantompb.WGPortForwardStartReq)
+      returns (phantompb.WGPortForward);
+  rpc WGStopPortForward(phantompb.WGPortForwardStopReq)
+      returns (phantompb.WGPortForward);
+  rpc WGStartSocks(phantompb.WGSocksStartReq) returns (phantompb.WGSocks);
+  rpc WGStopSocks(phantompb.WGSocksStopReq) returns (phantompb.WGSocks);
+  rpc WGListForwarders(phantompb.WGTCPForwardersReq)
+      returns (phantompb.WGTCPForwarders);
+  rpc WGListSocksServers(phantompb.WGSocksServersReq)
+      returns (phantompb.WGSocksServers);
+
+  // *** Realtime Commands ***
+  rpc Shell(phantompb.ShellReq) returns (phantompb.Shell);
+  rpc ShellResize(phantompb.ShellResizeReq) returns (commonpb.Empty);
+  rpc Portfwd(phantompb.PortfwdReq) returns (phantompb.Portfwd);
+
+  // *** Socks5 ***
+  rpc CreateSocks(phantompb.Socks) returns (phantompb.Socks);
+  rpc CloseSocks(phantompb.Socks) returns (commonpb.Empty);
+  rpc SocksProxy(stream phantompb.SocksData) returns (stream phantompb.SocksData);
+
+  // *** Tunnels ***
+  rpc CreateTunnel(phantompb.Tunnel) returns (phantompb.Tunnel);
+  rpc CloseTunnel(phantompb.Tunnel) returns (commonpb.Empty);
+  rpc TunnelData(stream phantompb.TunnelData)
+      returns (stream phantompb.TunnelData);
+
+  // *** Events ***
+  rpc Events(commonpb.Empty) returns (stream clientpb.Event);
+
+  // *** Audit Log ***
+  rpc GetAuditLogs(clientpb.AuditLogFilter) returns (clientpb.AuditLogs);
+
+  // *** Engagements ***
+  rpc CreateEngagement(clientpb.Engagement) returns (clientpb.Engagement);
+  rpc GetEngagements(commonpb.Empty) returns (clientpb.Engagements);
+  rpc GetEngagement(clientpb.EngagementReq) returns (clientpb.Engagement);
+  rpc UpdateEngagement(clientpb.Engagement) returns (clientpb.Engagement);
+  rpc DeleteEngagement(clientpb.EngagementReq) returns (commonpb.Empty);
+  rpc AssignSessionToEngagement(clientpb.AssignTargetReq) returns (commonpb.Empty);
+  rpc AssignBeaconToEngagement(clientpb.AssignTargetReq) returns (commonpb.Empty);
+  rpc RemoveSessionFromEngagement(clientpb.AssignTargetReq) returns (commonpb.Empty);
+  rpc RemoveBeaconFromEngagement(clientpb.AssignTargetReq) returns (commonpb.Empty);
+  rpc AddFinding(clientpb.Finding) returns (clientpb.Finding);
+  rpc UpdateFinding(clientpb.Finding) returns (clientpb.Finding);
+  rpc DeleteFinding(clientpb.Finding) returns (commonpb.Empty);
+}

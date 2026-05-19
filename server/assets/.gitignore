@@ -1,0 +1,29 @@
+# Large static assets
+
+fs/*.zip
+!fs/placeholder.zip
+
+# Ignore platform-specific assets but keep placeholder files
+fs/darwin/amd64/*
+!fs/darwin/amd64/placeholder.txt
+!fs/darwin/amd64/.gitkeep
+
+fs/darwin/arm64/*
+!fs/darwin/arm64/placeholder.txt
+!fs/darwin/arm64/.gitkeep
+
+fs/linux/amd64/*
+!fs/linux/amd64/placeholder.txt
+!fs/linux/amd64/.gitkeep
+
+fs/linux/arm64/*
+!fs/linux/arm64/placeholder.txt
+!fs/linux/arm64/.gitkeep
+
+fs/windows/amd64/*
+!fs/windows/amd64/placeholder.txt
+!fs/windows/amd64/.gitkeep
+
+fs/windows/arm64/*
+!fs/windows/arm64/placeholder.txt
+!fs/windows/arm64/.gitkeep

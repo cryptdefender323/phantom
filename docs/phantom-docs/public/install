@@ -1,0 +1,184 @@
+#!/bin/bash
+set -e
+
+PHANTOM_MINISIGN_PUB_KEY="RWTZPg959v3b7tLG7VzKHRB1/QT+d3c71Uzetfa44qAoX5rH7mGoQTTR"
+PHANTOM_PLATFORM="linux"
+
+if [[ "$EUID" -ne 0 ]];then
+    echo "Please run as root"
+    exit
+fi
+
+# Determine OS type
+# Debian-based OS (Debian, Ubuntu, etc)
+if command -v apt-get &> /dev/null; then
+    echo "Installing dependencies using apt..."
+    DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
+        minisign curl build-essential git
+    	INSTALLER=(apt-get install -yqq)
+elif command -v yum &> /dev/null; then # Redhat-based OS (Fedora, CentOS, RHEL)
+    echo "Installing dependencies using yum..."
+    yum -y install minisign curl make git
+	INSTALLER=(yum -y)
+elif command -v pacman &>/dev/null; then # Arch-based (Manjaro, Garuda, Blackarch)
+	echo "Installing dependencies using pacman..."
+	pacman --noconfirm -S minisign
+    INSTALLER=(pacman --noconfirm -S)
+else
+    echo "Unsupported OS, exiting"
+    exit
+fi
+
+# Verify if necessary tools are installed
+for cmd in curl awk minisign; do
+    if ! command -v "$cmd" &> /dev/null; then		
+        echo "$cmd could not be found, installing..."
+		${INSTALLER[@]} "$cmd"
+    fi
+done
+
+cd /root || exit
+echo "Running from $(pwd)"
+
+echo "Using Minisign public key..."
+
+stop_existing_phantom_daemon() {
+    local existing_phantom_server=""
+
+    if test -x /root/phantom-server; then
+        existing_phantom_server="/root/phantom-server"
+    elif command -v phantom-server &> /dev/null; then
+        existing_phantom_server="$(command -v phantom-server)"
+    fi
+
+    if [[ -z "$existing_phantom_server" ]]; then
+        return 0
+    fi
+
+    echo "Existing Phantom server install detected at $existing_phantom_server"
+
+    if command -v systemctl &> /dev/null && test -f /etc/systemd/system/phantom.service; then
+        if systemctl is-active --quiet phantom; then
+            echo "Stopping the Phantom systemd service before upgrade..."
+            systemctl stop phantom
+        fi
+    fi
+
+    if pgrep -f "${existing_phantom_server} daemon" > /dev/null 2>&1; then
+        echo "Stopping the running Phantom daemon before upgrade..."
+        pkill -f "${existing_phantom_server} daemon"
+    fi
+}
+
+# Download and Unpack Phantom Server
+ARCH="$(uname -m)"
+case "$ARCH" in
+    x86_64|amd64)
+        PHANTOM_PLATFORM="linux-amd64"
+        ;;
+    aarch64|arm64)
+        PHANTOM_PLATFORM="linux-arm64"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+echo "Fetching latest Phantom release URLs..."
+ARTIFACTS=$(curl -s "https://api.github.com/repos/cryptdefender323/phantom/releases/latest" | awk -F '"' '/browser_download_url/{print $4}')
+PHANTOM_SERVER="phantom-server_${PHANTOM_PLATFORM}"
+PHANTOM_CLIENT="phantom-client_${PHANTOM_PLATFORM}"
+
+for URL in $ARTIFACTS
+do
+    if [[ "$URL" == *"$PHANTOM_SERVER"* ]]; then
+        echo "Downloading $URL"
+        curl --silent -L "$URL" --output "$(basename "$URL")"
+    fi
+    if [[ "$URL" == *"$PHANTOM_CLIENT"* ]]; then
+        echo "Downloading $URL"
+        curl --silent -L "$URL" --output "$(basename "$URL")"
+    fi
+done
+
+# Signature verification
+echo "Verifying signatures ..."
+minisign -Vm "/root/$PHANTOM_SERVER" -x "/root/$PHANTOM_SERVER.minisig" -P "$PHANTOM_MINISIGN_PUB_KEY"
+minisign -Vm "/root/$PHANTOM_CLIENT" -x "/root/$PHANTOM_CLIENT.minisig" -P "$PHANTOM_MINISIGN_PUB_KEY"
+
+stop_existing_phantom_daemon
+
+if test -f "/root/$PHANTOM_SERVER"; then
+    echo "Moving the Phantom server executable to /root/phantom-server..."
+    mv "/root/$PHANTOM_SERVER" /root/phantom-server
+
+    echo "Setting permissions for the Phantom server executable..."
+    chmod 755 /root/phantom-server
+
+    echo "Unpacking the Phantom server..."
+    /root/phantom-server unpack --force
+else
+    exit 3
+fi
+
+if test -f "/root/$PHANTOM_CLIENT"; then
+    echo "Setting permissions for the Phantom client executable..."
+    chmod 755 "/root/$PHANTOM_CLIENT"
+
+    echo "Copying the Phantom client executable to /usr/local/bin/phantom-client..."
+    cp -vv "/root/$PHANTOM_CLIENT" /usr/local/bin/phantom-client
+
+    echo "Creating a symbolic link for phantom-client at /usr/local/bin/phantom..."
+    ln -sf /usr/local/bin/phantom-client /usr/local/bin/phantom
+
+    echo "Setting permissions for the symbolic link /usr/local/bin/phantom..."
+    chmod 755 /usr/local/bin/phantom
+else
+    exit 3
+fi
+
+# systemd
+echo "Configuring systemd service ..."
+cat > /etc/systemd/system/phantom.service <<-EOF
+[Unit]
+Description=Phantom
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=3
+User=root
+ExecStart=/root/phantom-server daemon
+
+[Install]
+WantedBy=multi-user.target
+EOF
+chown root:root /etc/systemd/system/phantom.service
+chmod 600 /etc/systemd/system/phantom.service
+
+# Generate local configs
+echo "Generating local configs ..."
+
+# Generate local configs
+echo "Generating operator configs ..."
+mkdir -p /root/.phantom-client/configs
+/root/phantom-server operator --name root --lhost 127.0.0.1 --permissions all --save /root/.phantom-client/configs
+chown -R root:root /root/.phantom-client/
+
+USER_DIRS=(/home/*)
+for USER_DIR in "${USER_DIRS[@]}"; do
+    USER=$(basename "$USER_DIR")
+    if id -u "$USER" >/dev/null 2>&1; then
+        echo "Generating operator configs for user $USER..."
+        mkdir -p "$USER_DIR/.phantom-client/configs"
+        /root/phantom-server operator --name "$USER" --lhost 127.0.0.1 --permissions all --save "$USER_DIR/.phantom-client/configs"
+        chown -R "$USER":"$(id -gn "$USER")" "$USER_DIR/.phantom-client/"
+    fi
+done
+
+echo "Reloading systemd and starting the Phantom service..."
+systemctl daemon-reload
+systemctl start phantom

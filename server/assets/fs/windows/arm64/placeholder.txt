@@ -1,0 +1,2 @@
+# Placeholder file for Go embed
+# This directory will contain platform-specific assets during build

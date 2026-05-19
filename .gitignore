@@ -1,0 +1,66 @@
+/crush
+
+/examples
+
+/.vscode
+/.vscode/*
+/.devcontainer
+/.idea
+
+/artifacts
+/artifacts/**
+
+*.rc
+
+/Dockerfile.*
+/*.sdk.tar.xz
+
+/release-*
+
+# Diffs
+*.orig
+
+# Binaries
+/phantom-server
+/phantom-server_arm64
+/phantom.exe
+/phantom-server_*
+/phantom-server-linux
+/phantom-server-linux-*
+/phantom-client-linux
+/phantom-client-linux-*
+
+/phantom-client
+/phantom-client_arm64
+/phantom-client.exe
+/phantom-client_*
+
+phantom-server-linux.zip
+phantom-server-macos.zip
+phantom-server-windows.zip
+
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+/*.test
+/test.py
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+/*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+.DS_Store
+
+dist/
+.gocache/
+.gomodcache/
+
+# Flag to show that go-assets.sh has been run
+.downloaded_assets
